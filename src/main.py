@@ -51,13 +51,13 @@ def main():
                     alpha=alphas[alpha_idx],
                     beta=betas[beta_idx],
                     C=1.0,
-                    living_people=np.nansum(data.correspondence_matrix, axis=1),
-                    working_people=np.nansum(data.correspondence_matrix, axis=0),
                     max_iters=10**3,
-                    stopping_eps=10**(-3)
+                    stopping_eps=10**(-4)
                 ).fit(
                     cost_matrix_time=data.cost_matrix_time,
-                    cost_matrix_distance=data.cost_matrix_distance
+                    cost_matrix_distance=data.cost_matrix_distance,
+                    living_people=np.nansum(data.correspondence_matrix, axis=1),
+                    working_people=np.nansum(data.correspondence_matrix, axis=0)
                 ).predict()
             )
             reconstruction_errors[alpha_idx, beta_idx] = np.linalg.norm(
