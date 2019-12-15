@@ -39,8 +39,8 @@ def main():
     print('Data have been found. Running optimization...\n')
 
     cost_func = cost_function.compute_cost_func1
-    alphas = 0.05 * np.arange(0, 21, 1)
-    betas = 0.05 * np.arange(0, 21, 1)
+    alphas = 0.1 * np.arange(1, 2)
+    betas = 0.1 * np.arange(1, 2)
     reconstruction_errors = np.zeros((len(alphas), len(betas)))
 
     for alpha_idx in range(len(alphas)):
@@ -53,8 +53,8 @@ def main():
                     C=1.0,
                     living_people=np.nansum(data.correspondence_matrix, axis=1),
                     working_people=np.nansum(data.correspondence_matrix, axis=0),
-                    max_iters=25,
-                    stopping_eps=0.01
+                    max_iters=10**3,
+                    stopping_eps=10**(-3)
                 ).fit(
                     cost_matrix_time=data.cost_matrix_time,
                     cost_matrix_distance=data.cost_matrix_distance

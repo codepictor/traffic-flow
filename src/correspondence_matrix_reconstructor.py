@@ -44,7 +44,7 @@ class CorrespondenceMatrixReconstructor:
         if stopping_eps <= 0.0:
             raise ValueError('stopping_eps should be positive')
 
-        self.cost_function = np.vectorize(cost_function)
+        self.cost_function = cost_function
         self.alpha = alpha
         self.beta = beta
         self.C = C
@@ -78,8 +78,9 @@ class CorrespondenceMatrixReconstructor:
 
         self.cost_matrix = self.cost_function(
             alpha=self.alpha, beta=self.beta,
-            time=cost_matrix_distance, distance=cost_matrix_distance
+            time=cost_matrix_time, distance=cost_matrix_distance
         )
+        print('cost_matrix:\n', self.cost_matrix, '\n')
         self.cost_matrix = np.nan_to_num(self.cost_matrix, nan=np.inf)
         return self
 
