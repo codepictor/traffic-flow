@@ -39,7 +39,7 @@ def main():
     print('Data have been found. Running optimization...\n')
 
     cost_func = cost_function.compute_cost_func1
-    alphas = 0.1 * np.arange(1, 2)
+    alphas = 0.05 * np.arange(1, 2)
     betas = 0.1 * np.arange(1, 2)
     reconstruction_errors = np.zeros((len(alphas), len(betas)))
 
@@ -51,7 +51,7 @@ def main():
                     alpha=alphas[alpha_idx],
                     beta=betas[beta_idx],
                     C=1.0,
-                    max_iters=10**3,
+                    max_iters=500,
                     stopping_eps=10**(-4)
                 ).fit(
                     cost_matrix_time=data.cost_matrix_time,
@@ -69,6 +69,7 @@ def main():
                 'reconstruction error =',
                 reconstruction_errors[alpha_idx, beta_idx], '\n'
             )
+            utils.plot_matrix(reconstructed_correspondence_matrix, 'reconstructed_correspondence_matrix')
 
     print('\nreconstruction_errors =\n', reconstruction_errors, '\n')
     utils.plot_matrix(
