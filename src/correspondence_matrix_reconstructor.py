@@ -91,11 +91,6 @@ class CorrespondenceMatrixReconstructor:
         self.cost_matrix = np.nan_to_num(self.cost_matrix, nan=np.inf)
         self.living_people = living_people
         self.working_people = working_people
-
-        # print('cost_matrix:\n', self.cost_matrix, '\n')
-        # print('L =', self.living_people)
-        # print('W =', self.working_people)
-
         return self
 
     def predict(self):
@@ -121,60 +116,30 @@ class CorrespondenceMatrixReconstructor:
 
         for iter_idx in range(self.max_iters):
             if iter_idx % 2 == 0:
-                for i in range(n_areas):
-                    summa = 0
-                    for j in range(n_areas):
-                        summa += (
-                            np.exp(-lambdas_w[j]) / norm_living_people[i]
-                            / np.exp(1 + self.cost_matrix[i, j] / self.C)
-                        )
-                    lambdas_l[i] = np.log(summa)
+                new_lambdas_w = lambdas_w
+                new_lambdas_l = np.log(np.sum(
+                    (np.exp(-lambdas_w - 1 - self.cost_matrix / self.C)).T
+                    / norm_living_people, axis=0
+                ))
             else:
-                for j in range(n_areas):
-                    summa = 0
-                    for i in range(n_areas):
-                        summa += (
-                            np.exp(-lambdas_l[i]) / norm_working_people[j]
-                            / np.exp(1 + self.cost_matrix[i, j] / self.C)
-                        )
-                    lambdas_w[j] = np.log(summa)
+                new_lambdas_l = lambdas_l
+                new_lambdas_w = np.log(np.sum(
+                    (np.exp(-lambdas_l - 1 - self.cost_matrix.T / self.C)).T
+                    / norm_working_people, axis=0
+                ))
 
-            print('\niter_idx =', iter_idx)
-            print('lambdas_l =', lambdas_l)
-            print('lambdas_w =', lambdas_w)
+            deltas = np.concatenate((
+                new_lambdas_l - lambdas_l, new_lambdas_w - lambdas_w
+            ))
+            if np.linalg.norm(deltas) < self.stopping_eps:
+                break
+            lambdas_l = new_lambdas_l
+            lambdas_w = new_lambdas_w
 
-        # for iter_idx in range(self.max_iters):
-        #     if iter_idx % 2 == 0:
-        #         new_lambdas_w = lambdas_w
-        #         new_lambdas_l = np.log(np.sum(
-        #             (np.exp(-lambdas_w - 1 - self.cost_matrix / self.C)).T
-        #             / norm_living_people, axis=0
-        #         ))
-        #     else:
-        #         new_lambdas_l = lambdas_l
-        #         new_lambdas_w = np.log(np.sum(
-        #             (np.exp(-lambdas_l - 1 - self.cost_matrix.T / self.C)).T
-        #             / norm_working_people, axis=0
-        #         ))
-        #
-        #     lambdas_l = new_lambdas_l
-        #     lambdas_w = new_lambdas_w
-        #
-        #     print('\niter_idx =', iter_idx)
-        #     print('lambdas_l =', lambdas_l)
-        #     print('lambdas_w =', lambdas_w)
-
-        # reconstructed_correspondence_matrix = (
-        #     np.exp(-1 - self.cost_matrix / self.C) *
-        #     np.exp(np.reshape(-lambdas_l, (n_areas, 1)) - lambdas_w)
-        # )
-        reconstructed_correspondence_matrix = np.zeros((n_areas, n_areas))
-        for i in range(n_areas):
-            for j in range(n_areas):
-                reconstructed_correspondence_matrix[i, j] = (
-                    np.exp(-lambdas_l[i]) * np.exp(-lambdas_w[j]) / np.exp(1 + self.cost_matrix[i, j] / self.C)
-                )
-
+        reconstructed_correspondence_matrix = (
+            np.exp(-1 - self.cost_matrix / self.C) *
+            np.exp(np.reshape(-lambdas_l, (n_areas, 1)) - lambdas_w)
+        )
         reconstructed_correspondence_matrix *= n_people
         return reconstructed_correspondence_matrix
 

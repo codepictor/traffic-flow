@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def plot_matrix(matrix, plot_name,
+def plot_matrix(matrix, plot_name, annot, linewidths,
                 xticklabels=None, yticklabels=None, xlabel=None, ylabel=None):
     """Plot matrix to a file as a heat map.
 
@@ -16,6 +16,10 @@ def plot_matrix(matrix, plot_name,
         Data to visualize as a heat map.
     plot_name : str
         Plot's title as well as name of the output file.
+    annot : bool
+        If True, write the data value in each cell.
+    linewidths : bool
+        Width of the lines that will divide each cell.
     xticklabels : iterable object, optional
         Names of ticks on the x-axis.
     yticklabels : iterable object, optional
@@ -27,24 +31,21 @@ def plot_matrix(matrix, plot_name,
     """
     if len(matrix.shape) != 2:
         raise ValueError('Only 2-D arrays can be displayed as a heat map.')
-    # if matrix.shape[0] != matrix.shape[1]:
-    #     raise ValueError('Data should have a square shape.')
+    if matrix.shape[0] != matrix.shape[1]:
+        raise ValueError('Data should have a square shape.')
     if not isinstance(plot_name, str):
         raise TypeError('Name of a heat map should be a string.')
 
     sns.set(font_scale=1.2)
-    fig, ax = plt.subplots(figsize=(
-        max(10, matrix.shape[1]),
-        max(10, matrix.shape[0])
-    ))
+    fig, ax = plt.subplots(figsize=(16, 16))
     sns.heatmap(
         pd.DataFrame(index=yticklabels, data=matrix, columns=xticklabels),
-        square=True, annot=True, fmt=".1f",
-        linewidths=0.5, linecolor='black', ax=ax
+        square=True, annot=annot, fmt=".1f",
+        linewidths=linewidths, linecolor='black', rasterized=True, ax=ax
     )
-    plt.xlabel(xlabel, fontsize=max(16, matrix.shape[0]))
-    plt.ylabel(ylabel, fontsize=max(16, matrix.shape[0]))
-    plt.title(plot_name, fontsize=int(1.5*max(16, matrix.shape[0])))
+    plt.xlabel(xlabel, fontsize=16)
+    plt.ylabel(ylabel, fontsize=16)
+    plt.title(plot_name, fontsize=24)
 
     plt.tight_layout()
     plt.savefig(

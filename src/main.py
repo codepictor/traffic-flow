@@ -21,15 +21,18 @@ def get_traffic_data():
 def plot_traffic_data(data):
     utils.plot_matrix(
         matrix=data.correspondence_matrix,
-        plot_name='correspondence_matrix'
+        plot_name='correspondence_matrix',
+        annot=True, linewidths=0.5
     )
     utils.plot_matrix(
         matrix=data.cost_matrix_time,
-        plot_name='cost_matrix_time'
+        plot_name='cost_matrix_time',
+        annot=True, linewidths=0.5
     )
     utils.plot_matrix(
         matrix=data.cost_matrix_distance,
-        plot_name='cost_matrix_distance'
+        plot_name='cost_matrix_distance',
+        annot=True, linewidths=0.5
     )
 
 
@@ -39,9 +42,11 @@ def main():
     print('Data have been found. Running optimization...\n')
 
     cost_func = cost_function.compute_cost_func1
-    alphas = 0.05 * np.arange(1, 2)
-    betas = 0.1 * np.arange(1, 2)
+    alphas = 0.001 * np.arange(2, 1200, 2)
+    betas = 0.001 * np.arange(2, 1200, 2)
     reconstruction_errors = np.zeros((len(alphas), len(betas)))
+    min_reconstruction_error = np.inf
+    best_alpha, best_beta = np.nan, np.nan
 
     for alpha_idx in range(len(alphas)):
         for beta_idx in range(len(betas)):
@@ -51,7 +56,7 @@ def main():
                     alpha=alphas[alpha_idx],
                     beta=betas[beta_idx],
                     C=1.0,
-                    max_iters=500,
+                    max_iters=10000,
                     stopping_eps=10**(-4)
                 ).fit(
                     cost_matrix_time=data.cost_matrix_time,
@@ -60,21 +65,28 @@ def main():
                     working_people=np.nansum(data.correspondence_matrix, axis=0)
                 ).predict()
             )
-            reconstruction_errors[alpha_idx, beta_idx] = np.linalg.norm(
+            reconstruction_error = np.linalg.norm(
                 reconstructed_correspondence_matrix -
                 np.nan_to_num(data.correspondence_matrix, nan=0.0)
             )
+            reconstruction_errors[alpha_idx, beta_idx] = reconstruction_error
+            if reconstruction_error < min_reconstruction_error:
+                min_reconstruction_error = reconstruction_error
+                best_alpha, best_beta = alphas[alpha_idx], betas[beta_idx]
+
             print(
                 'alpha =', alphas[alpha_idx], 'beta =', betas[beta_idx],
-                'reconstruction error =',
-                reconstruction_errors[alpha_idx, beta_idx], '\n'
+                'reconstruction error =', reconstruction_error
             )
-            utils.plot_matrix(reconstructed_correspondence_matrix, 'reconstructed_correspondence_matrix')
 
-    print('\nreconstruction_errors =\n', reconstruction_errors, '\n')
+    print('\nOptimization has finished.')
+    # print('\nreconstruction_errors =\n', reconstruction_errors, '\n')
+    print('best_alpha =', best_alpha, 'best_beta =', best_beta)
+    print('min_reconstruction_error =', min_reconstruction_error)
     utils.plot_matrix(
         matrix=reconstruction_errors,
         plot_name='reconstruction_errors_' + cost_func.__name__,
+        annot=False, linewidths=0,
         xticklabels=np.round(betas, 2), yticklabels=np.round(alphas, 2),
         xlabel='beta', ylabel='alpha'
     )
