@@ -51,9 +51,9 @@ def plot_matrix(matrix, plot_name, annot, linewidths,
     plt.savefig(
         os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
-            '..', 'graphics', plot_name + '.pdf'
+            '..', 'graphics', plot_name + '.png'
         ),
-        dpi=150, format='pdf'
+        dpi=150, format='png'
     )
     plt.close(fig)
 
