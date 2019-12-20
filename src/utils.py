@@ -31,8 +31,8 @@ def plot_matrix(matrix, plot_name, annot, linewidths,
     """
     if len(matrix.shape) != 2:
         raise ValueError('Only 2-D arrays can be displayed as a heat map.')
-    if matrix.shape[0] != matrix.shape[1]:
-        raise ValueError('Data should have a square shape.')
+    # if matrix.shape[0] != matrix.shape[1]:
+    #     raise ValueError('Data should have a square shape.')
     if not isinstance(plot_name, str):
         raise TypeError('Name of a heat map should be a string.')
 

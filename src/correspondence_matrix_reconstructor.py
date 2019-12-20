@@ -136,9 +136,9 @@ class CorrespondenceMatrixReconstructor:
             lambdas_l = new_lambdas_l
             lambdas_w = new_lambdas_w
 
-        reconstructed_correspondence_matrix = (
-            np.exp(-1 - self.cost_matrix / self.C) *
-            np.exp(np.reshape(-lambdas_l, (n_areas, 1)) - lambdas_w)
+        reconstructed_correspondence_matrix = np.exp(
+            -1 - self.cost_matrix / self.C
+            - (np.reshape(lambdas_l, (n_areas, 1)) + lambdas_w)
         )
         reconstructed_correspondence_matrix *= n_people
         return reconstructed_correspondence_matrix
