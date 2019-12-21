@@ -1,6 +1,5 @@
 import os
 import os.path
-import pickle
 
 import numpy as np
 
@@ -38,7 +37,7 @@ def plot_traffic_data(data):
 
 
 def reconstruct_correspondence_matrix(data, cost_func, alphas, betas):
-    best_matrix = np.zeros((len(alphas), len(betas)))
+    best_matrix = None
     reconstruction_errors = np.zeros((len(alphas), len(betas)))
     min_reconstruction_error = np.inf
     best_alpha, best_beta = np.nan, np.nan
@@ -47,17 +46,22 @@ def reconstruct_correspondence_matrix(data, cost_func, alphas, betas):
         for beta_idx in range(len(betas)):
             reconstructed_correspondence_matrix = (
                 cmr.CorrespondenceMatrixReconstructor(
-                    cost_function=cost_func,
-                    alpha=alphas[alpha_idx],
-                    beta=betas[beta_idx],
                     C=1.0,
                     max_iters=10000,
                     stopping_eps=10**(-4)
                 ).fit(
-                    cost_matrix_time=data.cost_matrix_time,
-                    cost_matrix_distance=data.cost_matrix_distance,
-                    living_people=np.nansum(data.correspondence_matrix, axis=1),
-                    working_people=np.nansum(data.correspondence_matrix, axis=0)
+                    cost_matrix=np.nan_to_num(cost_func(
+                        alpha=alphas[alpha_idx],
+                        beta=betas[beta_idx],
+                        time=data.cost_matrix_time,
+                        distance=data.cost_matrix_distance
+                    ), nan=np.inf),
+                    living_people=np.nansum(
+                        data.correspondence_matrix, axis=1
+                    ),
+                    working_people=np.nansum(
+                        data.correspondence_matrix, axis=0
+                    )
                 ).predict()
             )
             reconstruction_error = np.linalg.norm(
@@ -73,9 +77,6 @@ def reconstruct_correspondence_matrix(data, cost_func, alphas, betas):
                 'alpha =', alphas[alpha_idx], 'beta =', betas[beta_idx],
                 'reconstruction error =', reconstruction_error
             )
-
-    with open('reconstruction_errors.pickle', 'wb') as f:
-        pickle.dump(reconstruction_errors, f)
 
     print('\nOptimization has finished.\n')
     print('reconstruction_errors =\n', reconstruction_errors, '\n')
@@ -95,17 +96,18 @@ def main():
     plot_traffic_data(data)
     print('Data have been found. Running optimization...\n')
 
+    cost_func = cost_function.compute_cost3
     reconstructed_correspondence_matrix, best_alpha, best_beta = (
         reconstruct_correspondence_matrix(
             data=data,
-            cost_func=cost_function.compute_cost_func1,
+            cost_func=cost_func,
             alphas=0.001 * np.arange(1, 501, 1),
-            betas=np.arange(1, 2, 1)
+            betas=0.001 * np.arange(1, 4, 1)
         )
     )
     utils.plot_matrix(
         matrix=reconstructed_correspondence_matrix,
-        plot_name='reconstructed_correspondence_matrix',
+        plot_name='reconstructed_correspondence_matrix_' + cost_func.__name__,
         annot=True, linewidths=0.5
     )
 

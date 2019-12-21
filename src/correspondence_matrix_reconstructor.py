@@ -6,13 +6,6 @@ class CorrespondenceMatrixReconstructor:
 
     Attributes
     ----------
-    cost_function : callable
-        A scalar function to compute cost from time and distance
-        (it also uses the parameters alpha and beta, see below).
-    alpha : float
-        Parameter to be used for cost computation.
-    beta : float
-        Parameter to be used for cost computation.
     C : float
         Ratio between two terms of the optimization problem.
     living_people : array of shape (n_areas,)
@@ -31,33 +24,26 @@ class CorrespondenceMatrixReconstructor:
         Costs to go between areas.
     """
 
-    def __init__(self, cost_function, alpha, beta, C,
-                 max_iters=10000, stopping_eps=0.0001):
+    def __init__(self, C, max_iters=10000, stopping_eps=0.0001):
         if max_iters <= 0.0:
             raise ValueError('max_iters should be a positive integer')
         if stopping_eps <= 0.0:
             raise ValueError('stopping_eps should be positive')
 
-        self.cost_function = cost_function
-        self.alpha = alpha
-        self.beta = beta
         self.C = C
         self.max_iters = max_iters
         self.stopping_eps = stopping_eps
+        self.cost_matrix = None
         self.living_people = None
         self.working_people = None
-        self.cost_matrix = None
 
-    def fit(self, cost_matrix_time, cost_matrix_distance,
-            living_people, working_people):
+    def fit(self, cost_matrix, living_people, working_people):
         """Compute one cost matrix from 2 given matrices.
 
         Parameters
         ----------
-        cost_matrix_time : array of shape (n_areas, n_areas)
-            Time to go from one area to another.
-        cost_matrix_distance : array of shape (n_areas, n_areas)
-            Distances between areas.
+        cost_matrix : array of shape (n_areas, n_areas)
+            Costs to go between areas.
         living_people : array of shape (n_areas,)
             The first constraint of the optimization problem. One number
             corresponds to one area and is equal to the number of people
@@ -71,24 +57,15 @@ class CorrespondenceMatrixReconstructor:
         -------
         self : returns an instance of self.
         """
-        if (len(cost_matrix_time.shape) != 2 or
-                len(cost_matrix_distance.shape) != 2):
-            raise ValueError('cost_matrix_time and cost_matrix_distance '
-                             'should be 2-D arrays')
-        if cost_matrix_time.shape != cost_matrix_distance.shape:
-            raise ValueError('Shapes of cost_matrix_time '
-                             'and cost_matrix_distance do not match')
+        if len(cost_matrix.shape) != 2:
+            raise ValueError('cost_matrix should be a 2-D array')
         if len(living_people.shape) != 1 or len(working_people.shape) != 1:
             raise ValueError('living_people (L) and working_people (W) '
                              'should be 1-D arrays')
         if living_people.sum() != working_people.sum():
             raise ValueError('The number of all people (N) is contradictory')
 
-        self.cost_matrix = self.cost_function(
-            alpha=self.alpha, beta=self.beta,
-            time=cost_matrix_time, distance=cost_matrix_distance
-        )
-        self.cost_matrix = np.nan_to_num(self.cost_matrix, nan=np.inf)
+        self.cost_matrix = cost_matrix
         self.living_people = living_people
         self.working_people = working_people
         return self
