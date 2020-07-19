@@ -1,13 +1,10 @@
 # traffic-flow
+
 Traffic flow analysis based on a gravity model
 
-## Manage dependencies:
+### Setting up the environment
 
-First of all, you should have ```python 3.x``` to work with this project. The recommended Python version is ```3.6``` or greater.
-
-*Note for Windows users*: You should start a command line with administrator's privileges.
-
-First of all, clone the repository:
+Clone the repository:
 
     git clone https://github.com/codepictor/traffic-flow.git
     cd traffic-flow/
